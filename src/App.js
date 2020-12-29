@@ -1,59 +1,30 @@
-import logo from './logo.svg';
+import React from 'react';
+import { I18n } from "aws-amplify";
+import { AuthState, onAuthUIStateChange } from '@aws-amplify/ui-components';
+import { dictionary } from './I18n/amplify/index';
+import AuthScreen from './screen/AuthScreen';
+import ReportListScreen from './screen/ReportListScreen';
 import './App.css';
-import {
-  BrowserRouter as Router,
-  Switch,
-  Route,
-  Link
-} from "react-router-dom";
-import { withAuthenticator, AmplifySignOut } from '@aws-amplify/ui-react'
+
+I18n.putVocabularies(dictionary);
+I18n.setLanguage("ja");
 
 function App() {
-  return (
-    <div>
-      <Router>
-        <div>
-          <nav>
-            <ul>
-              <li>
-                <Link to="/">Home</Link>
-              </li>
-              <li>
-                <Link to="/about">About</Link>
-              </li>
-              <li>
-                <Link to="/users">Users</Link>
-              </li>
-            </ul>
-          </nav>
-          <Switch>
-            <Route path="/about">
-              <About />
-            </Route>
-            <Route path="/users">
-              <Users />
-            </Route>
-            <Route path="/">
-              <Home />
-            </Route>
-          </Switch>
-        </div>
-      </Router>
-      <AmplifySignOut />
-    </div>
+  const [authState, setAuthState] = React.useState();
+  const [user, setUser] = React.useState();
+
+  React.useEffect(() => {
+    onAuthUIStateChange((nextAuthState, authData) => {
+        setAuthState(nextAuthState);
+        setUser(authData)
+    });
+  }, []);
+
+  return authState === AuthState.SignedIn && user ? (
+    <ReportListScreen user={user} />
+  ) : (
+    <AuthScreen />
   );
 }
 
-function Home() {
-  return <h2>Home</h2>;
-}
-
-function About() {
-  return <h2>About</h2>;
-}
-
-function Users() {
-  return <h2>Users</h2>;
-}
-
-export default withAuthenticator(App);
+export default App;
